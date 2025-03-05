@@ -25,11 +25,8 @@ jobs:
     - name: Install dependencies
       run: pip install requests
 
-    - name: Generate IPv6 List
-      run: python vpn-asn-to-ipv6.py
-
-    - name: Generate IPv4 List
-      run: python vpn-asn-to-ipv4.py
+    - name: Generate IP Lists
+      run: python vpn-asn-to-ip.py
 
     - name: Commit changes
       env:
