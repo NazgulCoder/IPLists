@@ -1,6 +1,7 @@
 import requests
 import time
 import os
+import json
 
 ASN_LIST = [
     "AS9009",   # M247 (NordVPN)
