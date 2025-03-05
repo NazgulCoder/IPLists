@@ -36,7 +36,7 @@ def main():
         try:
             prefixes = get_ipv4_prefixes(asn)
             all_prefixes.update(prefixes)
-            time.sleep(1)
+            time.sleep(1.5)
         except Exception as e:
             print(f"Error processing {asn}: {str(e)}")
             continue
