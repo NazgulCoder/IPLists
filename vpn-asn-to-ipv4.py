@@ -1,5 +1,4 @@
 import requests
-import json
 import time
 import os
 
@@ -17,22 +16,25 @@ def get_ipv4_prefixes(asn):
     """Fetch IPv4 prefixes for a given ASN from RIPE Stat"""
     url = f"https://stat.ripe.net/data/announced-prefixes/data.json?resource={asn}"
     try:
-        response = requests.get(url, timeout=30)
+        # Add custom headers to avoid being blocked
+        headers = {
+            'User-Agent': 'VPN-IP-List-Generator/1.0 (+https://github.com/your-repo)'
+        }
+        response = requests.get(url, headers=headers, timeout=45)
         response.raise_for_status()
         data = response.json()
         
+        print(f"Raw response for {asn}: {json.dumps(data, indent=2)}")  # Debug
+        
         prefixes = []
         for p in data.get("data", {}).get("prefixes", []):
-            # Check both CIDR notation and API's AFI field
-            if "." in p["prefix"] and p.get("afi") == "IPv4":  # Case-sensitive check
+            # Alternative verification method
+            if p.get("afi") == "IPv4" and len(p["prefix"].split('.')) == 4:
                 prefixes.append(p["prefix"])
         return prefixes
         
-    except requests.exceptions.RequestException as e:
+    except Exception as e:
         print(f"Error fetching {asn}: {str(e)}")
-        return []
-    except json.JSONDecodeError:
-        print(f"Invalid JSON response for {asn}")
         return []
 
 def main():
@@ -41,27 +43,29 @@ def main():
     
     print("Starting IPv4 prefix collection...")
     for asn in ASN_LIST:
-        print(f"Processing {asn}...")
+        print(f"\nProcessing {asn}...")
         try:
             prefixes = get_ipv4_prefixes(asn)
+            print(f"Found {len(prefixes)} prefixes for {asn}")
             if prefixes:
-                print(f"Found {len(prefixes)} prefixes for {asn}")
-                all_prefixes.update(prefixes)
-            time.sleep(1.5)  # Respect API rate limits
+                print("Sample prefixes:", prefixes[:3])
+            all_prefixes.update(prefixes)
+            time.sleep(3)  # Increased delay
         except Exception as e:
-            print(f"Error processing {asn}: {str(e)}")
+            print(f"Critical error processing {asn}: {str(e)}")
             continue
     
-    # Ensure output directory exists
-    os.makedirs('output', exist_ok=True)
-    
     # Save results
+    os.makedirs('output', exist_ok=True)
     output_file = 'output/vpn-ipv4.txt'
+    
     with open(output_file, 'w') as f:
         f.write("\n".join(sorted(all_prefixes)))
     
-    print("\nCollection complete!")
-    print(f"Saved {len(all_prefixes)} unique IPv4 prefixes to {output_file}")
+    print("\nFinal Results:")
+    print(f"Total ASNs checked: {len(ASN_LIST)}")
+    print(f"Unique IPv4 prefixes collected: {len(all_prefixes)}")
+    print(f"Output file: {output_file}")
 
 if __name__ == "__main__":
     main()
