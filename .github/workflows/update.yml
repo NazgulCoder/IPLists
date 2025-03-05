@@ -26,10 +26,10 @@ jobs:
       run: pip install requests
 
     - name: Generate IPv6 List
-      run: python asn-to-ipv6.py
+      run: python vpn-asn-to-ipv6.py
 
     - name: Generate IPv4 List
-      run: python asn-to-ipv4.py
+      run: python vpn-asn-to-ipv4.py
 
     - name: Commit changes
       env:
