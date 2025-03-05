@@ -1,6 +1,7 @@
 import requests
 import time
 import os
+import ipaddress
 import json
 
 ASN_LIST = [
@@ -13,25 +14,26 @@ ASN_LIST = [
     "AS50525"   # Privado VPN
 ]
 
+def is_valid_ipv4_prefix(prefix):
+    try:
+        network = ipaddress.IPv4Network(prefix, strict=False)
+        return True
+    except ValueError:
+        return False
+
 def get_ipv4_prefixes(asn):
     """Fetch IPv4 prefixes for a given ASN from RIPE Stat"""
     url = f"https://stat.ripe.net/data/announced-prefixes/data.json?resource={asn}"
     try:
-        # Add custom headers to avoid being blocked
-        headers = {
-            'User-Agent': 'VPN-IP-List-Generator/1.0 (+https://github.com/your-repo)'
-        }
-        response = requests.get(url, headers=headers, timeout=45)
+        response = requests.get(url, timeout=30)
         response.raise_for_status()
         data = response.json()
         
-        print(f"Raw response for {asn}: {json.dumps(data, indent=2)}")  # Debug
-        
         prefixes = []
-        for p in data.get("data", {}).get("prefixes", []):
-            # Alternative verification method
-            if p.get("afi") == "IPv4" and len(p["prefix"].split('.')) == 4:
-                prefixes.append(p["prefix"])
+        for entry in data.get("data", {}).get("prefixes", []):
+            prefix = entry.get("prefix", "")
+            if is_valid_ipv4_prefix(prefix):
+                prefixes.append(prefix)
         return prefixes
         
     except Exception as e:
@@ -47,13 +49,13 @@ def main():
         print(f"\nProcessing {asn}...")
         try:
             prefixes = get_ipv4_prefixes(asn)
-            print(f"Found {len(prefixes)} prefixes for {asn}")
+            print(f"Raw prefixes found: {prefixes}")
             if prefixes:
-                print("Sample prefixes:", prefixes[:3])
-            all_prefixes.update(prefixes)
-            time.sleep(3)  # Increased delay
+                all_prefixes.update(prefixes)
+                print(f"Added {len(prefixes)} valid prefixes")
+            time.sleep(1)
         except Exception as e:
-            print(f"Critical error processing {asn}: {str(e)}")
+            print(f"Error processing {asn}: {str(e)}")
             continue
     
     # Save results
@@ -64,9 +66,8 @@ def main():
         f.write("\n".join(sorted(all_prefixes)))
     
     print("\nFinal Results:")
-    print(f"Total ASNs checked: {len(ASN_LIST)}")
-    print(f"Unique IPv4 prefixes collected: {len(all_prefixes)}")
-    print(f"Output file: {output_file}")
+    print(f"Total unique IPv4 prefixes: {len(all_prefixes)}")
+    print(f"Saved to: {output_file}")
 
 if __name__ == "__main__":
     main()
