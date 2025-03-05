@@ -1,5 +1,6 @@
 import requests
 import json
+import time
 
 ASN_LIST = [
     "AS9009",   # M247 (NordVPN)
@@ -14,12 +15,13 @@ ASN_LIST = [
 def get_ipv6_prefixes(asn):
     url = f"https://stat.ripe.net/data/announced-prefixes/data.json?resource={asn}"
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=30)  # Increased timeout
+        response.raise_for_status()
         data = response.json()
         return [
             p["prefix"] 
             for p in data.get("data", {}).get("prefixes", [])
-            if ":" in p["prefix"]  # Simple IPv6 detection
+            if ":" in p["prefix"]
         ]
     except Exception as e:
         print(f"Error fetching {asn}: {str(e)}")
@@ -30,9 +32,13 @@ def main():
     
     for asn in ASN_LIST:
         print(f"Processing {asn}...")
-        prefixes = get_ipv6_prefixes(asn)
-        all_prefixes.update(prefixes)
-        time.sleep(1)  # Rate limiting
+        try:
+            prefixes = get_ipv6_prefixes(asn)
+            all_prefixes.update(prefixes)
+            time.sleep(1)  # Rate limiting
+        except Exception as e:
+            print(f"Error processing {asn}: {str(e)}")
+            continue
     
     with open("vpn-ipv6.txt", "w") as f:
         f.write("\n".join(sorted(all_prefixes)))
