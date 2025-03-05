@@ -14,39 +14,54 @@ ASN_LIST = [
 ]
 
 def get_ipv4_prefixes(asn):
+    """Fetch IPv4 prefixes for a given ASN from RIPE Stat"""
     url = f"https://stat.ripe.net/data/announced-prefixes/data.json?resource={asn}"
     try:
         response = requests.get(url, timeout=30)
         response.raise_for_status()
         data = response.json()
-        return [
-            p["prefix"] 
-            for p in data.get("data", {}).get("prefixes", [])
-            if "." in p["prefix"] and p["afi"] == "IPv4"  # IPv4 detection
-        ]
-    except Exception as e:
+        
+        prefixes = []
+        for p in data.get("data", {}).get("prefixes", []):
+            # Check both CIDR notation and API's AFI field
+            if "." in p["prefix"] and p.get("afi") == "IPv4":  # Case-sensitive check
+                prefixes.append(p["prefix"])
+        return prefixes
+        
+    except requests.exceptions.RequestException as e:
         print(f"Error fetching {asn}: {str(e)}")
+        return []
+    except json.JSONDecodeError:
+        print(f"Invalid JSON response for {asn}")
         return []
 
 def main():
+    """Main function to collect and save IPv4 prefixes"""
     all_prefixes = set()
     
+    print("Starting IPv4 prefix collection...")
     for asn in ASN_LIST:
         print(f"Processing {asn}...")
         try:
             prefixes = get_ipv4_prefixes(asn)
-            all_prefixes.update(prefixes)
-            time.sleep(1.5)
+            if prefixes:
+                print(f"Found {len(prefixes)} prefixes for {asn}")
+                all_prefixes.update(prefixes)
+            time.sleep(1.5)  # Respect API rate limits
         except Exception as e:
             print(f"Error processing {asn}: {str(e)}")
             continue
     
+    # Ensure output directory exists
     os.makedirs('output', exist_ok=True)
     
-    with open("output/vpn-ipv4.txt", "w") as f:
+    # Save results
+    output_file = 'output/vpn-ipv4.txt'
+    with open(output_file, 'w') as f:
         f.write("\n".join(sorted(all_prefixes)))
     
-    print(f"Found {len(all_prefixes)} IPv4 prefixes")
+    print("\nCollection complete!")
+    print(f"Saved {len(all_prefixes)} unique IPv4 prefixes to {output_file}")
 
 if __name__ == "__main__":
     main()
