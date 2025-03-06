@@ -31,6 +31,7 @@ ASN_LIST = [
     "AS210743",  # BABBAR-AS
     "AS200651",  # FlokiNET
     "AS394711",  # Limenet
+    "AS51852",   # PrivateAlps
 ]
 
 BASE_URL = "https://stat.ripe.net/data/announced-prefixes/data.json?resource={asn}"
