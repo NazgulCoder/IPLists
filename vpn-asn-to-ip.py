@@ -10,13 +10,27 @@ from typing import List, Set
 logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 
 ASN_LIST = [
-    "AS9009",   # M247 (NordVPN)
-    "AS20448",  # VPNtranet
-    "AS209854", # Surfshark
-    "AS136787", # NordVPN (TEFINCOM)
-    "AS32751",  # Octovpn
-    "AS212238", # Datacamp VPN
-    "AS50525"   # Privado VPN
+    "AS9009",    # M247 (NordVPN)
+    "AS20448",   # VPNtranet
+    "AS209854",  # Surfshark
+    "AS136787",  # NordVPN (TEFINCOM)
+    "AS32751",   # Octovpn
+    "AS212238",  # Datacamp VPN
+    "AS50525",   # Privado VPN
+    "AS8100",    # QuadraBet
+    "AS11878",   # Tzulo
+    "AS13213",   # UK2.net
+    "AS46475",   # Limestone Networks
+    "AS46562",   # Performive
+    "AS60068",   # CDN77
+    "AS199218",  # ProtonVPN
+    "AS203020",  # HostRoyale
+    "AS204957",  # GREEN FLOID LLC
+    "AS212238",  # Datacamp Limited
+    "AS216419",  # Matrix Telecom Solutions
+    "AS210743",  # BABBAR-AS
+    "AS200651",  # FlokiNET
+    "AS394711",  # Limenet
 ]
 
 BASE_URL = "https://stat.ripe.net/data/announced-prefixes/data.json?resource={asn}"
