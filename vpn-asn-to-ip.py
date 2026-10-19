@@ -17,7 +17,6 @@ ASN_LIST = [
     "AS32751",   # Octovpn
     "AS212238",  # Datacamp VPN
     "AS50525",   # Privado VPN
-    "AS8100",    # QuadraBet
     "AS11878",   # Tzulo
     "AS13213",   # UK2.net
     "AS46475",   # Limestone Networks
